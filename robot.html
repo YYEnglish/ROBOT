@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Robot</title>
+  <style>
+    *{margin:0;padding:0;box-sizing: border-box;outline: none; }
+    li{list-style: none;}
+    html,hody{width: 100%;height: 100%; }
+    .clearfix::after{
+      display: block;
+      content: "";
+      height: 0;
+      font-size: 0;
+      overflow: hidden;
+      clear: both;
+    }
+    .clearfix{
+      zoom: 1;
+    }
+    .content{
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid hotpink;
+    }
+    .nav{
+      height: 50px;
+      font-size: 25px;
+      line-height: 50px;
+      text-align: center;
+      color: skyblue;
+      background-color: hotpink;
+    }
+    /* 内容部分 */
+
+    .mes>a,
+    .yours>a{
+      display:block;
+      width: 50px;
+      height: 50px;
+      border-radius: 10px;
+      margin: 10px;
+    }
+    .yours>a{
+      float: left;
+      overflow: hidden;
+    }
+    .mes>div,
+    .yours>div{
+      border-radius: 10px;
+      max-width: 80%;
+      padding: 10px;
+      margin-top: 10px;
+      background-color: hotpink;
+    }
+    .yours>div{
+      float: left;
+    }
+    .mes>a{
+      overflow: hidden;
+      float:right;  
+    }
+    .yours>a>img,
+    .mes>a>img{
+      width: 50px;
+      height: 50px;
+      border: 0;
+    }
+    .mes>div{
+      float:right;
+    }
+    /* 底部固定输入框 */
+    .tabs{
+      width: 100%;
+      height: 50px;
+      background-color: hotpink;
+    }
+    .tabs>input{
+      width: 70%;
+      height: 30px;
+      margin: 8px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      text-indent: 5px;
+    }
+    .tabs>button{
+      padding: 5px 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background:-webkit-gradient(linear,0 0,0 100%,from(pink),to(hotpink));
+    }
+    .yourtext,
+    .mestext{
+      word-wrap: break-word;
+    }
+  </style>
+</head>
+<body>
+  <!--[if lte IE 8]>
+      
+    <![endif]-->
+  <div class="content">
+    <div class="nav">Chatting Robot</div>
+    <div class="main">
+      <!-- 机器人回复 -->
+      <div class="yours clearfix">
+        <a href="javascript:void(0)"><img src="./robot.png"></a>
+        <div class="yourtext">小A</div>
+      </div>
+      <!-- 我输入的内容 -->
+      <div class="mes clearfix">
+        <a href="javascript:void(0)"><img src="http://img3.duitang.com/uploads/item/201512/18/20151218215810_CEdiK.jpeg"></a>
+        <div class="mestext">我输入的内容</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <input type="text" placeholder="请输入内容">
+      <button>发送</button>
+    </div>
+  </div>
+</body>
+<script src="http://code.jquery.com/jquery-latest.js"></script>
+<script>
+  $(function(){
+    let windowHight = window.screen.height;
+    console.log(windowHight)
+    $(".content").css("height",windowHight);
+    let $mainHeight = $(window).height()-102;
+    console.log($mainHeight)
+    $(".main").css({
+      "height":$mainHeight+"px",
+      "overflow":"auto"
+    })
+    $("button").eq(0).click(function(){
+      let $inputMessage = $("input").eq(0).val();
+      if($inputMessage == ""){
+        alert("我爱你，哪怕你对我不言不语");
+      }else{
+        let $mesTextIndex = $(".mes:first").clone(); 
+        $($mesTextIndex).appendTo(".main");
+        $(".mestext:last").html($inputMessage);
+        // 需求2
+        //1.创建对象
+        var xhr = new XMLHttpRequest();
+        //2.设置请求行(get请求数据写在url后面)
+        xhr.open('POST', 'http://www.tuling123.com/openapi/api');
+        //3.设置请求头(get请求可以省略,post不发送数据也可以省略)
+        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        //3.5注册回调函数
+        xhr.onload = function () {
+          console.log(xhr.responseText);
+          let XRT = JSON.parse(xhr.responseText);
+          console.log(XRT.text);
+          let $yoursTextIndex = $(".yours:first").clone(); 
+          $($yoursTextIndex).appendTo(".main");
+          $(".yourtext:last").html(XRT.text);
+          if(XRT.url){
+            let urls = XRT.url;
+            if(urls[urls.length-1]=="/"){
+              urls = urls.substring(0,urls.length-1);
+              $(".yourtext:last").html(XRT.text+"<a href="+urls+">点我查看详情...</a>");
+            }else{
+              $(".yourtext:last").html(XRT.text+"<a href="+XRT.url+">点我查看详情...</a>");
+            }
+          }
+          if(XRT.list){
+            let lists = '';
+            let imges = '';
+            for(let i=0;i<XRT.list.length;i++){
+              // 标题判断
+              if(XRT.list[i].source){
+                XRT.list[i].source=XRT.list[i].source;
+              }else{
+                XRT.list[i].source = '';
+              }
+              // 标题判断
+              if(XRT.list[i].name){
+                XRT.list[i].name=XRT.list[i].name;
+              }else{
+                XRT.list[i].name='';
+              }
+              // 主内容判断
+              if(XRT.list[i].article){
+                XRT.list[i].article=XRT.list[i].article;
+              }else{
+                XRT.list[i].article='';
+              }
+              // 外链查询判断
+              if(XRT.list[i].detailurl){
+                XRT.list[i].detailurl=XRT.list[i].detailurl;
+              }else{
+                XRT.list[i].detailurl='';
+              }
+              // 菜谱评分判断
+              if(XRT.list[i].info){
+                XRT.list[i].info=XRT.list[i].info;
+              }else{
+                XRT.list[i].info='';
+              }
+              lists += XRT.list[i].source+XRT.list[i].name+":"+"<br/> "+"<img src="+XRT.list[i].icon+">"+"<br/>"+XRT.list[i].info+"<br/>"+XRT.list[i].article+"<a href="+XRT.list[i].detailurl+">详情链接...</a>"+";"+"<br/>"
+            }
+            $(".yourtext:last").html(XRT.text+"："+lists);
+          }
+        }
+        // 参数
+        xhr.send('key=a1ef0507ea9847258d29e682523d0035&info=' + $inputMessage);
+        $("input").eq(0).val("");
+      }
+    })
+  })
+</script>
+</html>
